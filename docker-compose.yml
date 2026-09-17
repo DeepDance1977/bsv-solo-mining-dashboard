@@ -1,0 +1,80 @@
+# ============================================================
+# BSV Solo Mining Dashboard - Docker Compose (All-in-One Variante)
+# Autor/Eigentuemer: DeepDance | Lizenz: MIT
+#
+# Enthaelt optional den eigenen arm64 Bitcoin-SV-Node (Ordner ./node).
+# Standardmaessig aktiv - falls du bereits eine eigene BSV-Node betreibst
+# (z.B. als separate 5tratumOS/Umbrel-App), kommentiere den "bsv-node"-
+# Service aus und setze in .env stattdessen BSV_RPC_HOST=host.docker.internal
+# bzw. die IP der bestehenden Node.
+# ============================================================
+
+version: "3.9"
+
+services:
+  bsv-node:
+    build: ./node
+    container_name: bsv-dashboard-node
+    restart: unless-stopped
+    environment:
+      RPC_USER: ${BSV_RPC_USER:-rpcuser}
+      RPC_PASSWORD: ${BSV_RPC_PASSWORD:-rpcpassword}
+      RPC_ALLOW_IP: 172.16.0.0/12
+      NETWORK: mainnet
+    volumes:
+      - bsv_dashboard_nodedata:/data
+    ports:
+      - "8333:8333"   # P2P
+      - "8332:8332"   # RPC (nur bei Bedarf nach aussen oeffnen)
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-datadir=/data", "getblockchaininfo"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bsv-dashboard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bsvdash}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bsvdash}
+      POSTGRES_DB: ${POSTGRES_DB:-bsvdash}
+    volumes:
+      - bsv_dashboard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bsvdash}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: bsv-dashboard-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://bsvdash:bsvdash@postgres:5432/bsvdash}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bsv-node:
+        condition: service_started
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: bsv-dashboard-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  bsv_dashboard_pgdata:
+  bsv_dashboard_nodedata:
