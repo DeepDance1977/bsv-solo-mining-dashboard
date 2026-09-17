@@ -1,0 +1,42 @@
+# ============================================================
+# Bitcoin SV - Konfigurationsvorlage fuer Solo-Mining-Node-Betrieb
+# Platzhalter (__VARIABLE__) werden vom docker-entrypoint.sh beim
+# Container-Start aus Umgebungsvariablen ersetzt.
+# ============================================================
+
+server=1
+daemon=0
+txindex=1
+
+# --- Netzwerk ---
+listen=1
+bind=0.0.0.0
+maxconnections=125
+
+# --- RPC ---
+rpcuser=__RPC_USER__
+rpcpassword=__RPC_PASSWORD__
+rpcbind=0.0.0.0
+rpcallowip=__RPC_ALLOW_IP__
+rpcport=8332
+rpcworkqueue=64
+rpcthreads=8
+
+# --- ZMQ (fuer Echtzeit-Block-Benachrichtigungen) ---
+zmqpubhashblock=tcp://0.0.0.0:28332
+zmqpubhashtx=tcp://0.0.0.0:28332
+
+# --- Mining / Solo-Mining Unterstuetzung ---
+# getblocktemplate wird vom Stratum-Server fuer Solo-Mining benoetigt.
+
+# --- Performance (Raspberry Pi 5 / 8GB RAM) ---
+dbcache=2000
+maxmempool=300
+par=4
+
+# --- Wallet ---
+disablewallet=0
+
+# --- Logging ---
+printtoconsole=1
+shrinkdebugfile=1

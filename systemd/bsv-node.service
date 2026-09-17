@@ -1,0 +1,29 @@
+# ============================================================
+# systemd-Unit fuer den nativen Betrieb der Bitcoin-SV-Node (ohne Docker),
+# falls bitcoind lokal aus dem Quellcode gebaut wurde (siehe node/README.md).
+#
+# Installation:
+#   sudo cp systemd/bsv-node.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now bsv-node
+# ============================================================
+[Unit]
+Description=Bitcoin SV Full Node - by DeepDance
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=bsv
+Group=bsv
+ExecStart=/opt/bitcoin-sv/bin/bitcoind -datadir=/data/bitcoin-sv -conf=/data/bitcoin-sv/bitcoin.conf
+ExecStop=/opt/bitcoin-sv/bin/bitcoin-cli -datadir=/data/bitcoin-sv stop
+TimeoutStopSec=300
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

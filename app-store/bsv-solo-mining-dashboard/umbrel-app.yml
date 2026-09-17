@@ -1,0 +1,47 @@
+manifestVersion: 1
+id: bsv-solo-mining-dashboard
+category: bitcoin
+name: BSV Solo Mining Dashboard
+version: "1.0.0"
+tagline: Web-Dashboard fuer deine Bitcoin SV Full Node und dein Solo-Mining-Setup
+description: >-
+  BSV Solo Mining Dashboard ist ein modernes, quelloffenes Web-Dashboard zur
+  Ueberwachung einer Bitcoin SV Full Node und einer Solo-Mining-Umgebung.
+
+  Funktionen:
+  - Node-Ueberwachung: Sync-Status, Blockhoehe, Peers, Difficulty,
+    Netzwerk-Hashrate, Uptime sowie CPU-, RAM-, Disk- und Temperaturanzeige
+    des Raspberry Pi.
+  - Solo-Mining-Ueberwachung: alle am Stratum-Server angemeldeten Miner mit
+    Name, IP, Hashrate, akzeptierten/abgelehnten Shares, Uptime und
+    Online/Offline-Status.
+  - Wallet-Uebersicht: Empfangsadresse, Guthaben, letzte Transaktionen und
+    Mining-Belohnungen.
+  - Live-Dashboard mit Dark Mode, Charts und automatischer Aktualisierung
+    per WebSocket - ohne Neuladen der Seite.
+  - Telegram-Benachrichtigungen bei Miner-Online/Offline, gefundenen
+    Bloecken und Node-Fehlern.
+  - Benutzerverwaltung mit Rollenmodell (Admin/Operator/Betrachter) und
+    JWT-Authentifizierung.
+developer: DeepDance
+website: https://github.com/DeepDance1977/bsv-solo-mining-dashboard
+# Haengt vom BSV Full-Node-Paket ab, nicht von der offiziellen "bitcoin"-App
+# (Bitcoin Core / BTC). Passe die App-ID an, falls dein Store einen anderen
+# Bezeichner fuer den BSV-Node fuehrt.
+dependencies:
+  - deepdance-bitcoin-sv
+repo: https://github.com/DeepDance1977/bsv-solo-mining-dashboard
+support: https://github.com/DeepDance1977/bsv-solo-mining-dashboard/issues
+port: 3000
+gallery:
+  - 1.jpg
+  - 2.jpg
+  - 3.jpg
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: DeepDance
+submission: https://github.com/DeepDance1977/bsv-solo-mining-dashboard
+releaseNotes: >-
+  Erstveroeffentlichung: vollstaendiges Node-, Mining- und Wallet-Dashboard
+  fuer Bitcoin SV mit Live-Updates, Telegram-Alerts und Benutzerverwaltung.

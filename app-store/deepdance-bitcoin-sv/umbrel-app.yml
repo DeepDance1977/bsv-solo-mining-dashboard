@@ -1,0 +1,35 @@
+manifestVersion: 1
+id: deepdance-bitcoin-sv
+category: bitcoin
+name: Bitcoin SV Full Node (DeepDance)
+version: "1.2.0"
+tagline: Sauberer arm64 Bitcoin-SV-Full-Node fuer Raspberry Pi 5
+description: >-
+  Ein aus dem offiziellen Quellcode gebauter Bitcoin-SV-Node speziell fuer
+  64-bit ARM Hardware (Raspberry Pi 5, 5tratumOS). Kein amd64-Image, keine
+  QEMU-Emulation, keine fragile Berkeley-DB-Installation von Hand - alles ist
+  im Image sauber vorkompiliert.
+
+  Enthaelt Wallet-Unterstuetzung (fuer Empfangsadresse, Guthaben und
+  Mining-Belohnungen im BSV Solo Mining Dashboard), ZMQ-Benachrichtigungen
+  fuer neue Bloecke sowie txindex fuer volle RPC-Kompatibilitaet.
+
+  Empfehlung: externe SSD statt microSD-Karte fuer die Blockchain-Daten.
+developer: DeepDance
+website: https://github.com/DeepDance1977/deepdance-bitcoin-sv
+dependencies: []
+repo: https://github.com/DeepDance1977/deepdance-bitcoin-sv
+support: https://github.com/DeepDance1977/deepdance-bitcoin-sv/issues
+port: 8332
+gallery:
+  - 1.jpg
+  - 2.jpg
+path: ""
+defaultUsername: ""
+defaultPassword: ""
+submitter: DeepDance
+submission: https://github.com/DeepDance1977/deepdance-bitcoin-sv
+releaseNotes: >-
+  Neubau als sauberer, nativer arm64-Quellcode-Build (Chronicle-Release
+  1.2.0). Loest bekannte Build-Probleme frueherer Versionen (fehlende
+  Berkeley DB 4.8, falsche Zielarchitektur).

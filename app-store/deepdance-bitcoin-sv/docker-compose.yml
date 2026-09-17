@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: deepdance-bitcoin-sv_bsv-node_1
+      APP_PORT: 8332
+
+  bsv-node:
+    image: ghcr.io/deepdance1977/bsv-full-node-arm64:1.2.0
+    restart: on-failure
+    stop_grace_period: 5m
+    environment:
+      RPC_USER: deepdance
+      RPC_PASSWORD: $APP_PASSWORD
+      RPC_ALLOW_IP: 172.16.0.0/12
+      NETWORK: mainnet
+    ports:
+      - "8333:8333"
+    volumes:
+      - ${APP_DATA_DIR}/data:/data

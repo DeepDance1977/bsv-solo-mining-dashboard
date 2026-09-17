@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d111c"/>
+      <stop offset="100%" stop-color="#12263f"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="190" fill="url(#bg)"/>
+  <rect x="6" y="6" width="1012" height="1012" rx="186" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="6"/>
+
+  <!-- isometrischer Block (Node-Symbol) -->
+  <polygon points="512,292 812,382 512,472 212,382" fill="#f7931a"/>
+  <polygon points="212,382 512,472 512,672 212,582" fill="#c86e0a"/>
+  <polygon points="512,472 812,382 812,582 512,672" fill="#e08214"/>
+  <polyline points="512,292 812,382 512,472 212,382 512,292" fill="none" stroke="#ffdcaa" stroke-width="6"/>
+
+  <!-- Pickel-Symbol -->
+  <g stroke="#1e1405" stroke-width="22" stroke-linecap="round">
+    <line x1="382" y1="452" x2="522" y2="372"/>
+    <line x1="412" y1="357" x2="457" y2="447"/>
+  </g>
+
+  <text x="512" y="762" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
+        font-weight="bold" font-size="92" fill="#f0f4fa">BSV NODE</text>
+  <text x="512" y="838" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif"
+        font-weight="bold" font-size="58" fill="#96beff">DeepDance</text>
+</svg>

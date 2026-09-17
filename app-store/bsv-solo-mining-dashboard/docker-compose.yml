@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: bsv-solo-mining-dashboard_frontend_1
+      APP_PORT: 80
+
+  postgres:
+    image: postgres:16-alpine
+    restart: on-failure
+    stop_grace_period: 1m
+    environment:
+      POSTGRES_USER: bsvdash
+      POSTGRES_PASSWORD: $APP_PASSWORD
+      POSTGRES_DB: bsvdash
+    volumes:
+      - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
+
+  backend:
+    image: ghcr.io/deepdance1977/bsv-solo-mining-dashboard-backend:1.0.0
+    restart: on-failure
+    stop_grace_period: 1m
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+psycopg2://bsvdash:$APP_PASSWORD@postgres:5432/bsvdash
+      SECRET_KEY: $APP_SEED
+      BOOTSTRAP_ADMIN_USERNAME: admin
+      BOOTSTRAP_ADMIN_PASSWORD: $APP_PASSWORD
+      BSV_RPC_HOST: $APP_BITCOIN_NODE_IP
+      BSV_RPC_PORT: $APP_BITCOIN_RPC_PORT
+      BSV_RPC_USER: $APP_BITCOIN_RPC_USER
+      BSV_RPC_PASSWORD: $APP_BITCOIN_RPC_PASS
+      STRATUM_API_URL: http://$APP_BITCOIN_NODE_IP:9000/stats
+    volumes:
+      - ${APP_DATA_DIR}/data/backend:/data
+
+  frontend:
+    image: ghcr.io/deepdance1977/bsv-solo-mining-dashboard-frontend:1.0.0
+    restart: on-failure
+    stop_grace_period: 1m
+    depends_on:
+      - backend
