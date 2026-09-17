@@ -1,0 +1,27 @@
+# Umgebungsvariablen / Secrets
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node/Frontend
+node_modules/
+dist/
+.vite/
+
+# Docker/Daten
+node/data/
+backend/data/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
