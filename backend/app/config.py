@@ -3,6 +3,8 @@ Zentrale Konfiguration der Anwendung.
 Alle Werte werden aus Umgebungsvariablen (.env) geladen.
 """
 from functools import lru_cache
+from typing import ClassVar
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -58,6 +60,33 @@ class Settings(BaseSettings):
     # Erstbenutzer (wird beim ersten Start angelegt, falls keine Nutzer existieren)
     BOOTSTRAP_ADMIN_USERNAME: str = "admin"
     BOOTSTRAP_ADMIN_PASSWORD: str = "changeme123"
+
+    # ---------------------------------------------------------------
+    # Robustheit: Wenn die BSV-Node-App (noch) nicht installiert ist,
+    # liefert die Plattform (Umbrel/5tratumOS) fuer verknuepfte
+    # Umgebungsvariablen wie $APP_BITCOIN_RPC_PORT einen LEEREN String
+    # statt die Variable ganz wegzulassen. Ohne diesen Validator wuerde
+    # das Backend beim Start abstuerzen (Crash-Loop), nur weil die
+    # Node-App noch fehlt. Leere Werte werden daher auf den jeweiligen
+    # Standardwert zurueckgesetzt; der RPC-Aufruf schlaegt dann spaeter
+    # kontrolliert fehl (Node zeigt "nicht erreichbar" statt Crash-Loop).
+    # ---------------------------------------------------------------
+    _INT_DEFAULTS: ClassVar[dict[str, int]] = {
+        "BSV_RPC_PORT": 8332,
+        "BSV_RPC_TIMEOUT": 10,
+        "STRATUM_POLL_INTERVAL_SECONDS": 10,
+        "MINER_OFFLINE_THRESHOLD_SECONDS": 120,
+        "SYSTEM_POLL_INTERVAL_SECONDS": 5,
+        "ACCESS_TOKEN_EXPIRE_MINUTES": 60 * 12,
+        "REFRESH_TOKEN_EXPIRE_MINUTES": 60 * 24 * 7,
+    }
+
+    @field_validator(*_INT_DEFAULTS.keys(), mode="before")
+    @classmethod
+    def _empty_int_to_default(cls, v, info):
+        if v == "":
+            return cls._INT_DEFAULTS[info.field_name]
+        return v
 
 
 @lru_cache
