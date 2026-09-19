@@ -1,7 +1,15 @@
 import axios from "axios";
 
+// Basis-URLs werden relativ zur tatsaechlichen Dokument-Adresse aufgeloest,
+// damit die App unabhaengig davon funktioniert, unter welchem Pfad sie
+// aufgerufen wird (direkter Port-Zugriff, Umbrel-App-Proxy, 5tratumOS
+// Unterordner-Reverse-Proxy wie "/apps/deepdance-dashboard/" etc.).
+// document.baseURI aendert sich dank HashRouter (siehe App.tsx) auch beim
+// Navigieren zwischen Seiten nicht, bleibt also zuverlaessig korrekt.
+const apiBaseUrl = new URL("api/", document.baseURI).toString();
+
 export const api = axios.create({
-  baseURL: "/api",
+  baseURL: apiBaseUrl,
 });
 
 api.interceptors.request.use((config) => {
@@ -17,7 +25,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("access_token");
-      window.location.href = "/login";
+      window.location.hash = "#/login";
     }
     return Promise.reject(error);
   }
@@ -25,6 +33,8 @@ api.interceptors.response.use(
 
 export function wsUrl(): string {
   const token = localStorage.getItem("access_token") || "";
-  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}`;
+  const httpUrl = new URL("ws", document.baseURI);
+  httpUrl.protocol = httpUrl.protocol === "https:" ? "wss:" : "ws:";
+  httpUrl.search = `?token=${encodeURIComponent(token)}`;
+  return httpUrl.toString();
 }

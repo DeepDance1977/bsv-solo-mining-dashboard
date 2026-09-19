@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchMe = async () => {
     try {
-      const res = await api.get<UserOut>("/auth/me");
+      const res = await api.get<UserOut>("auth/me");
       setUser(res.data);
     } catch {
       setUser(null);
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const form = new URLSearchParams();
     form.append("username", username);
     form.append("password", password);
-    const res = await api.post("/auth/login", form, {
+    const res = await api.post("auth/login", form, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
     localStorage.setItem("access_token", res.data.access_token);
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem("access_token");
     setUser(null);
-    window.location.href = "/login";
+    window.location.hash = "#/login";
   };
 
   return (

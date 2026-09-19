@@ -15,7 +15,7 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-100 dark:bg-bsv-dark">
       <aside className="md:w-56 w-full bg-white dark:bg-bsv-panel border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700/50 flex md:flex-col">
         <div className="flex items-center gap-2 p-4">
-          <img src="/icon.svg" alt="BSV Node" className="w-8 h-8 rounded-md" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="BSV Node" className="w-8 h-8 rounded-md" />
           <div className="leading-tight">
             <div className="font-bold text-sm">BSV Node</div>
             <div className="text-[10px] text-slate-400">by DeepDance</div>

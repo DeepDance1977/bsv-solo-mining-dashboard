@@ -12,8 +12,8 @@ export default function Settings() {
 
   const isAdmin = user?.role === "admin";
 
-  const loadUsers = () => api.get<UserOut[]>("/auth/users").then((r) => setUsers(r.data)).catch(() => {});
-  const loadEvents = () => api.get<EventItem[]>("/system/events?limit=50").then((r) => setEvents(r.data)).catch(() => {});
+  const loadUsers = () => api.get<UserOut[]>("auth/users").then((r) => setUsers(r.data)).catch(() => {});
+  const loadEvents = () => api.get<EventItem[]>("system/events?limit=50").then((r) => setEvents(r.data)).catch(() => {});
 
   useEffect(() => {
     if (isAdmin) loadUsers();
@@ -25,7 +25,7 @@ export default function Settings() {
   const createUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/auth/users", newUser);
+      await api.post("auth/users", newUser);
       setMessage("Benutzer erfolgreich angelegt.");
       setNewUser({ username: "", password: "", role: "viewer" });
       loadUsers();
@@ -35,13 +35,13 @@ export default function Settings() {
   };
 
   const toggleActive = async (u: UserOut) => {
-    await api.patch(`/auth/users/${u.id}`, { is_active: !u.is_active });
+    await api.patch(`auth/users/${u.id}`, { is_active: !u.is_active });
     loadUsers();
   };
 
   const deleteUser = async (u: UserOut) => {
     if (!confirm(`Benutzer '${u.username}' wirklich loeschen?`)) return;
-    await api.delete(`/auth/users/${u.id}`);
+    await api.delete(`auth/users/${u.id}`);
     loadUsers();
   };
 

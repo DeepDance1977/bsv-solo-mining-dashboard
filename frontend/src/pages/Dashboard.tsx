@@ -32,15 +32,15 @@ export default function Dashboard() {
   const [history, setHistory] = useState<HashratePoint[]>([]);
 
   useEffect(() => {
-    api.get<NodeStatus>("/node/status").then((r) => setNode(r.data)).catch(() => {});
-    api.get<HashratePoint[]>("/node/hashrate-history").then((r) => setHistory(r.data)).catch(() => {});
+    api.get<NodeStatus>("node/status").then((r) => setNode(r.data)).catch(() => {});
+    api.get<HashratePoint[]>("node/hashrate-history").then((r) => setHistory(r.data)).catch(() => {});
   }, []);
 
   useWebSocket((type, data) => {
     if (type === "node_status") setNode(data);
     if (type === "system_metrics") setSystem(data);
     if (type === "new_block") {
-      api.get<HashratePoint[]>("/node/hashrate-history").then((r) => setHistory(r.data)).catch(() => {});
+      api.get<HashratePoint[]>("node/hashrate-history").then((r) => setHistory(r.data)).catch(() => {});
     }
   });
 

@@ -28,7 +28,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-bsv-dark px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-bsv-panel rounded-2xl shadow-xl p-8 border border-slate-700/50">
         <div className="flex flex-col items-center mb-6">
-          <img src="/icon.svg" alt="BSV Node" className="w-16 h-16 rounded-xl mb-3" />
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="BSV Node" className="w-16 h-16 rounded-xl mb-3" />
           <h1 className="text-xl font-bold text-white">BSV Solo Mining Dashboard</h1>
           <p className="text-xs text-slate-400 mt-1">Entwickelt von DeepDance</p>
         </div>

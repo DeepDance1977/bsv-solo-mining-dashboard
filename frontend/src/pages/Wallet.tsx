@@ -7,7 +7,7 @@ export default function Wallet() {
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const load = () => api.get<WalletInfo>("/wallet").then((r) => setWallet(r.data)).catch(() => {});
+  const load = () => api.get<WalletInfo>("wallet").then((r) => setWallet(r.data)).catch(() => {});
 
   useEffect(() => {
     load();

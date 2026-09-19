@@ -12,7 +12,7 @@ export default function Miners() {
   const [history, setHistory] = useState<HashratePoint[]>([]);
 
   useEffect(() => {
-    api.get<Miner[]>("/miners").then((r) => setMiners(r.data)).catch(() => {});
+    api.get<Miner[]>("miners").then((r) => setMiners(r.data)).catch(() => {});
   }, []);
 
   useWebSocket((type, data) => {
@@ -22,7 +22,7 @@ export default function Miners() {
   useEffect(() => {
     if (!selected) return;
     api
-      .get<HashratePoint[]>(`/miners/${encodeURIComponent(selected)}/hashrate-history`)
+      .get<HashratePoint[]>(`miners/${encodeURIComponent(selected)}/hashrate-history`)
       .then((r) => setHistory(r.data))
       .catch(() => {});
   }, [selected]);
