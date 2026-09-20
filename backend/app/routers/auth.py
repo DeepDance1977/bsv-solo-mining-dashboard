@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User, EventLog, EventSeverity
-from app.schemas import Token, UserCreate, UserOut, UserUpdate
+from app.schemas import Token, UserCreate, UserOut, UserUpdate, ChangePasswordRequest
 from app.security import verify_password, hash_password, create_access_token
 from app.deps import get_current_user, require_admin
 
@@ -41,6 +41,21 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
 
 @router.get("/me", response_model=UserOut)
 def read_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/change-password", response_model=UserOut)
+def change_own_password(
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aktuelles Passwort ist falsch")
+    current_user.hashed_password = hash_password(payload.new_password)
+    current_user.must_change_password = False
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

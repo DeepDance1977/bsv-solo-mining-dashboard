@@ -39,6 +39,12 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.VIEWER, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Erzwingt eine Passwortaenderung beim naechsten Login. Wird fuer den
+    # automatisch angelegten Erstbenutzer auf True gesetzt, damit sich
+    # niemand dauerhaft auf ein systemseitig vorgegebenes Passwort verlassen
+    # muss (unabhaengig davon, ob/wie eine Plattform wie Umbrel/5tratumOS
+    # eigene Zufallspasswoerter einspeist).
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

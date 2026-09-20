@@ -29,6 +29,7 @@ class UserOut(BaseModel):
     username: str
     role: UserRole
     is_active: bool
+    must_change_password: bool
     created_at: datetime
     last_login: datetime | None
 
@@ -40,6 +41,11 @@ class UserUpdate(BaseModel):
     password: str | None = None
     role: UserRole | None = None
     is_active: bool | None = None
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 # ---------- Node ----------
