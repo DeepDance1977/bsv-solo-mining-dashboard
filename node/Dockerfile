@@ -35,6 +35,12 @@ WORKDIR /build
 RUN git clone --branch v${BSV_VERSION} --depth 1 \
     https://github.com/bitcoin-sv/bitcoin-sv.git bitcoin-sv
 
+# TEMPORAERER DIAGNOSE-SCHRITT: zeigt den tatsaechlichen Inhalt von contrib/,
+# da install_db4.sh dort in dieser Version offenbar nicht (mehr) liegt.
+RUN find bitcoin-sv/contrib -maxdepth 2 && \
+    (test -f bitcoin-sv/configure.ac && echo "configure.ac vorhanden" || echo "kein configure.ac") && \
+    ls bitcoin-sv/ | head -40
+
 # Berkeley DB 4.8 wird fuer die Legacy-Wallet benoetigt (Empfangsadresse /
 # Guthaben-Anzeige im Dashboard). Ubuntu liefert keine passende Version mehr
 # aus, daher wird sie ueber das mitgelieferte Hilfsskript lokal gebaut.
