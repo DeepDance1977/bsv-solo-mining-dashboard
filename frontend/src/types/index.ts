@@ -72,6 +72,7 @@ export interface UserOut {
   username: string;
   role: "admin" | "operator" | "viewer";
   is_active: boolean;
+  must_change_password: boolean;
   created_at: string;
   last_login: string | null;
 }
