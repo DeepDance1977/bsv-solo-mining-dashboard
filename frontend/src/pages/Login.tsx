@@ -39,6 +39,11 @@ export default function Login() {
           </div>
         )}
 
+        <div className="mb-4 text-xs bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded-lg px-3 py-2">
+          Erstanmeldung: <b>admin</b> / <b>changeme123</b> – danach wirst du
+          zur Vergabe eines eigenen Passworts aufgefordert.
+        </div>
+
         <label className="block text-xs text-slate-400 mb-1">Benutzername</label>
         <input
           className="w-full mb-4 rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-white focus:outline-none focus:border-bsv-gold"
