@@ -126,6 +126,13 @@ Danach: `http://<raspberry-pi-ip>:3000` aufrufen.
 Erstanmeldung mit `BOOTSTRAP_ADMIN_USERNAME` / `BOOTSTRAP_ADMIN_PASSWORD`
 aus der `.env` – **Passwort danach sofort in den Einstellungen aendern.**
 
+**Installation über den App-Store (Umbrel/5tratumOS):** Dort wird das
+Erstpasswort NICHT über die `.env` gesteuert, sondern ist fest auf
+Benutzername `admin` / Passwort `changeme123` voreingestellt. Die App
+zwingt dich beim allerersten Login automatisch dazu, ein eigenes,
+individuelles Passwort zu vergeben, bevor du das Dashboard nutzen kannst –
+du musst dir also nichts merken oder irgendwo nachschauen.
+
 Ausfuehrliche Installationsanleitung (inkl. 5tratumOS, systemd, HTTPS,
 App-Store-Einreichung): siehe [`INSTALL.md`](INSTALL.md).
 
