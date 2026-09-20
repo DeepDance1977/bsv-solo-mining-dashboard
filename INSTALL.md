@@ -83,6 +83,13 @@ Caddy kuemmert sich automatisch um das TLS-Zertifikat.
 
 ## Installation als App über Umbrel oder 5tratumOS
 
+**Erstanmeldung:** Benutzername `admin`, Passwort `changeme123`. Die App
+zwingt dich beim allerersten Login automatisch zur Vergabe eines eigenen
+Passworts – dieses feste Erstpasswort gilt für **jede** Installation über
+den App-Store gleichermaßen (unabhängig von zufällig generierten
+Plattform-Passwörtern), damit jeder Nutzer ohne Rätselraten weiß, wie er
+sich das erste Mal einloggt.
+
 Dieses Projekt liegt fix und fertig als **Umbrel-kompatibles App-Store-Paket**
 unter `app-store/` vor – 5tratumOS (WillItMod/5tratum) verwendet ebenfalls
 das Umbrel-App-Format ueber einen eigenen Community-Store, daher funktioniert
