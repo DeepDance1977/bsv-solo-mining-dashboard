@@ -19,7 +19,7 @@ fehlschlagende oder unvollstaendige BSV-Builds auf ARM.
 
 | Problem | Ursache | Loesung in diesem Image |
 |---|---|---|
-| `db_cxx.h: No such file or directory` | Ubuntu liefert kein `libdb4.8-dev` mehr aus | Berkeley DB 4.8 wird ueber `contrib/install_db4.sh` lokal aus dem Quellcode gebaut |
+| `db_cxx.h: No such file or directory` | Ubuntu liefert `libdb4.8-dev` nicht mehr aus | BSV verlangt laut eigener Doku nur "BerkeleyDB 5.3 oder neuer" - das fertige Ubuntu-Paket `libdb5.3++-dev` reicht, kein manuelles Kompilieren noetig (`--with-incompatible-bdb` beim Konfigurieren) |
 | Build haengt / OOM-Kill waehrend `make` | Zu wenig RAM/Swap auf dem Pi | Mit 8&nbsp;GB RAM unkritisch; bei kleineren Pi-Modellen vorher Swap auf mind. 2&nbsp;GB erhoehen |
 | `configure: error: boost not found` | Falsche/fehlende Boost-Pakete | Alle benoetigten `libboost-*-dev`-Pakete werden explizit installiert |
 | Falsches Zielsystem / Segfault beim Start | Cross-Kompilat fuer amd64 auf arm64 ausgefuehrt (oder umgekehrt) | Natives `ubuntu:22.04`-Basisimage, kein Cross-Compile-Toolchain |
