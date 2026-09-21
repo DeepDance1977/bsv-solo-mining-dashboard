@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-system-dev libboost-filesystem-dev libboost-chrono-dev \
     libboost-test-dev libboost-thread-dev \
     libminiupnpc-dev libzmq3-dev \
+    libdb5.3++-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -35,25 +36,16 @@ WORKDIR /build
 RUN git clone --branch v${BSV_VERSION} --depth 1 \
     https://github.com/bitcoin-sv/bitcoin-sv.git bitcoin-sv
 
-# TEMPORAERER DIAGNOSE-SCHRITT: zeigt den tatsaechlichen Inhalt von contrib/,
-# da install_db4.sh dort in dieser Version offenbar nicht (mehr) liegt.
-RUN find bitcoin-sv/contrib -maxdepth 2 && \
-    (test -f bitcoin-sv/configure.ac && echo "configure.ac vorhanden" || echo "kein configure.ac") && \
-    ls bitcoin-sv/ | head -40
-
-# Berkeley DB 4.8 wird fuer die Legacy-Wallet benoetigt (Empfangsadresse /
-# Guthaben-Anzeige im Dashboard). Ubuntu liefert keine passende Version mehr
-# aus, daher wird sie ueber das mitgelieferte Hilfsskript lokal gebaut.
+# Berkeley DB: BSV verlangt laut eigener Dokumentation "5.3 oder neuer" (nicht
+# zwingend die alte 4.8er-Version wie beim originalen Bitcoin Core) - deshalb
+# reicht das fertige Ubuntu-Systempaket libdb5.3++-dev (oben installiert),
+# ganz ohne fehleranfaelliges manuelles Kompilieren einer alten BDB-Version.
+# --with-incompatible-bdb erlaubt ausdruecklich eine von 4.8 abweichende
+# BDB-Version (unproblematisch, da hier ohnehin neue Wallets angelegt werden).
 RUN cd bitcoin-sv && \
-    chmod +x contrib/install_db4.sh && \
-    ./contrib/install_db4.sh "$(pwd)/db4" --enable-cxx
-
-RUN cd bitcoin-sv && \
-    BDB_PREFIX="$(pwd)/db4/db4" && \
     ./autogen.sh && \
     ./configure \
-      BDB_LIBS="-L${BDB_PREFIX}/lib -ldb_cxx-4.8" \
-      BDB_CFLAGS="-I${BDB_PREFIX}/include" \
+      --with-incompatible-bdb \
       --disable-tests \
       --disable-bench \
       --without-gui \
@@ -71,6 +63,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 libevent-2.1-7 libevent-pthreads-2.1-7 \
     libboost-system1.74.0 libboost-filesystem1.74.0 libboost-chrono1.74.0 \
     libboost-thread1.74.0 libminiupnpc17 libzmq5 \
+    libdb5.3++ \
     tini curl \
     && rm -rf /var/lib/apt/lists/*
 
