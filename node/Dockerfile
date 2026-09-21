@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-iostreams-dev \
     libminiupnpc-dev libzmq3-dev \
     libdb5.3++-dev \
+    libgoogle-perftools-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -66,6 +67,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-thread1.74.0 libboost-program-options1.74.0 \
     libboost-iostreams1.74.0 libminiupnpc17 libzmq5 \
     libdb5.3++ \
+    libtcmalloc-minimal4 \
     tini curl \
     && rm -rf /var/lib/apt/lists/*
 
