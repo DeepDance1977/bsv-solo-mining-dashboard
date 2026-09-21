@@ -1,50 +1,89 @@
-# Bitcoin SV Full Node – arm64 Docker-Image (DeepDance)
+# ============================================================
+# Bitcoin SV Full Node - sauberer arm64-Build aus dem Quellcode
+# Fuer Raspberry Pi 5 (Cortex-A76, 64-bit) und 5tratumOS.
+# Autor/Eigentuemer: DeepDance | Lizenz dieses Dockerfiles: MIT
+# Bitcoin SV selbst unterliegt der Open BSV License (siehe
+# THIRD_PARTY_LICENSES.md im Hauptprojekt).
+#
+# WICHTIG: Dieses Image wird bewusst NATIV auf arm64 gebaut
+# (kein QEMU-Cross-Build noetig, wenn direkt auf dem Pi 5 oder via
+# "docker buildx build --platform linux/arm64" auf einem arm64-Runner
+# gebaut wird). Cross-Kompilation unter QEMU ist ein haeufiger Grund
+# dafuer, dass BSV-Node-Builds auf dem Pi fehlschlagen oder ewig dauern.
+# ============================================================
 
-Sauberer, aus dem offiziellen Quellcode gebauter Bitcoin-SV-Node fuer
-**64-bit ARM** (Raspberry Pi 5 / 5tratumOS). Kein amd64-Image, keine
-QEMU-Emulation – dadurch deutlich zuverlaessiger als generische
-Cross-Build-Setups.
+ARG BSV_VERSION=1.2.0
+ARG UBUNTU_VERSION=22.04
 
-## Build
+# ---------- Stage 1: Build ----------
+FROM ubuntu:${UBUNTU_VERSION} AS builder
+ARG BSV_VERSION
+ENV DEBIAN_FRONTEND=noninteractive
 
-```bash
-docker buildx build --platform linux/arm64 -t bsv-full-node:1.2.0 .
-```
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libtool autotools-dev automake pkg-config bsdmainutils \
+    python3 git curl ca-certificates \
+    libssl-dev libevent-dev \
+    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev \
+    libboost-test-dev libboost-thread-dev \
+    libminiupnpc-dev libzmq3-dev \
+    libdb5.3++-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-Am besten **direkt auf dem Raspberry Pi 5** bauen (native Kompilierung),
-nicht per QEMU auf einem x86-Rechner – das ist die haeufigste Ursache fuer
-fehlschlagende oder unvollstaendige BSV-Builds auf ARM.
+WORKDIR /build
 
-## Bekannte Stolpersteine (und wie dieses Image sie vermeidet)
+# Bitcoin SV Quellcode (offizielles Repository, per Tag gepinnt)
+RUN git clone --branch v${BSV_VERSION} --depth 1 \
+    https://github.com/bitcoin-sv/bitcoin-sv.git bitcoin-sv
 
-| Problem | Ursache | Loesung in diesem Image |
-|---|---|---|
-| `db_cxx.h: No such file or directory` | Ubuntu liefert `libdb4.8-dev` nicht mehr aus | BSV verlangt laut eigener Doku nur "BerkeleyDB 5.3 oder neuer" - das fertige Ubuntu-Paket `libdb5.3++-dev` reicht, kein manuelles Kompilieren noetig (`--with-incompatible-bdb` beim Konfigurieren) |
-| Build haengt / OOM-Kill waehrend `make` | Zu wenig RAM/Swap auf dem Pi | Mit 8&nbsp;GB RAM unkritisch; bei kleineren Pi-Modellen vorher Swap auf mind. 2&nbsp;GB erhoehen |
-| `configure: error: boost not found` | Falsche/fehlende Boost-Pakete | Alle benoetigten `libboost-*-dev`-Pakete werden explizit installiert |
-| Falsches Zielsystem / Segfault beim Start | Cross-Kompilat fuer amd64 auf arm64 ausgefuehrt (oder umgekehrt) | Natives `ubuntu:22.04`-Basisimage, kein Cross-Compile-Toolchain |
-| RPC nicht erreichbar | `rpcallowip` zu restriktiv oder `rpcbind` fehlt | Werden ueber Umgebungsvariablen gesetzt, Standard erlaubt private Netze |
+# Berkeley DB: BSV verlangt laut eigener Dokumentation "5.3 oder neuer" (nicht
+# zwingend die alte 4.8er-Version wie beim originalen Bitcoin Core) - deshalb
+# reicht das fertige Ubuntu-Systempaket libdb5.3++-dev (oben installiert),
+# ganz ohne fehleranfaelliges manuelles Kompilieren einer alten BDB-Version.
+# --with-incompatible-bdb erlaubt ausdruecklich eine von 4.8 abweichende
+# BDB-Version (unproblematisch, da hier ohnehin neue Wallets angelegt werden).
+RUN cd bitcoin-sv && \
+    ./autogen.sh && \
+    ./configure \
+      --with-incompatible-bdb \
+      --disable-tests \
+      --disable-bench \
+      --without-gui \
+      --with-miniupnpc \
+      --enable-zmq \
+      --prefix=/opt/bitcoin-sv && \
+    make -j"$(nproc)" && \
+    make install
 
-## Wichtige Umgebungsvariablen
+# ---------- Stage 2: Runtime ----------
+FROM ubuntu:${UBUNTU_VERSION} AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
 
-| Variable | Standard | Beschreibung |
-|---|---|---|
-| `RPC_USER` | `rpcuser` | RPC-Benutzername |
-| `RPC_PASSWORD` | *(muss gesetzt werden)* | RPC-Passwort |
-| `RPC_ALLOW_IP` | `172.16.0.0/12` | Erlaubtes Subnetz fuer RPC-Zugriff (z.B. Docker-Netzwerk) |
-| `NETWORK` | `mainnet` | `mainnet` oder `testnet` |
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl3 libevent-2.1-7 libevent-pthreads-2.1-7 \
+    libboost-system1.74.0 libboost-filesystem1.74.0 libboost-chrono1.74.0 \
+    libboost-thread1.74.0 libminiupnpc17 libzmq5 \
+    libdb5.3++ \
+    tini curl \
+    && rm -rf /var/lib/apt/lists/*
 
-## Speicherbedarf
+COPY --from=builder /opt/bitcoin-sv /opt/bitcoin-sv
+ENV PATH="/opt/bitcoin-sv/bin:${PATH}"
 
-Die BSV-Blockchain (Mainnet, vollstaendig, `txindex=1`) benoetigt aktuell
-mehrere hundert GB und waechst kontinuierlich. Fuer den produktiven Betrieb
-wird eine externe SSD (USB 3.0 / NVMe-Hat) statt einer microSD-Karte dringend
-empfohlen – microSD-Karten sind fuer die dauerhafte I/O-Last eines Full Nodes
-zu langsam und verschleissanfaellig.
+RUN useradd -r -m -d /data -s /usr/sbin/nologin bsv
+VOLUME ["/data"]
 
-## Lizenzhinweis
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY bitcoin.conf.template /opt/bitcoin-sv/bitcoin.conf.template
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-Bitcoin SV selbst steht unter der **Open BSV License** (nicht MIT/BSD) –
-siehe `THIRD_PARTY_LICENSES.md` im Hauptprojekt fuer Details und
-Nutzungsbedingungen. Dieses Dockerfile/Entrypoint-Skript steht unter der
-MIT-Lizenz von DeepDance.
+USER bsv
+WORKDIR /data
+
+EXPOSE 8333 8332 28332
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+    CMD bitcoin-cli -datadir=/data getblockchaininfo >/dev/null 2>&1 || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
+CMD ["bitcoind"]
