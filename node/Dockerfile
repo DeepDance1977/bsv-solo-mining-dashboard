@@ -25,7 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 git curl ca-certificates \
     libssl-dev libevent-dev \
     libboost-system-dev libboost-filesystem-dev libboost-chrono-dev \
-    libboost-test-dev libboost-thread-dev \
+    libboost-test-dev libboost-thread-dev libboost-program-options-dev \
+    libboost-iostreams-dev \
     libminiupnpc-dev libzmq3-dev \
     libdb5.3++-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -62,7 +63,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl3 libevent-2.1-7 libevent-pthreads-2.1-7 \
     libboost-system1.74.0 libboost-filesystem1.74.0 libboost-chrono1.74.0 \
-    libboost-thread1.74.0 libminiupnpc17 libzmq5 \
+    libboost-thread1.74.0 libboost-program-options1.74.0 \
+    libboost-iostreams1.74.0 libminiupnpc17 libzmq5 \
     libdb5.3++ \
     tini curl \
     && rm -rf /var/lib/apt/lists/*
