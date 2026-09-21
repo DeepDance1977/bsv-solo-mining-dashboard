@@ -68,7 +68,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-iostreams1.74.0 libminiupnpc17 libzmq5 \
     libdb5.3++ \
     libtcmalloc-minimal4 \
-    tini curl \
+    tini curl util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/bitcoin-sv /opt/bitcoin-sv
@@ -81,13 +81,17 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY bitcoin.conf.template /opt/bitcoin-sv/bitcoin.conf.template
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-USER bsv
+# WICHTIG: Container startet bewusst als root (kein "USER bsv" hier). Das
+# Entrypoint-Skript korrigiert beim Start die Zugriffsrechte auf den vom
+# Host bereitgestellten Datenordner /data (der bei Bind-Mounts standard-
+# maessig root gehoert) und wechselt danach selbst per "runuser" zum
+# unprivilegierten Benutzer "bsv", bevor bitcoind tatsaechlich laeuft.
 WORKDIR /data
 
 EXPOSE 8333 8332 28332
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
-    CMD bitcoin-cli -datadir=/data getblockchaininfo >/dev/null 2>&1 || exit 1
+    CMD runuser -u bsv -- bitcoin-cli -datadir=/data getblockchaininfo >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
 CMD ["bitcoind"]
