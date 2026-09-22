@@ -8,10 +8,11 @@ server=1
 daemon=0
 txindex=1
 
-# --- Pflicht-Konsens-Parameter (seit Genesis-Upgrade zwingend erforderlich,
-# bitcoind startet sonst gar nicht) - offizielle BSV-Standardwerte ---
+# --- Pflicht-Konsens-/Policy-Parameter (seit Genesis-Upgrade zwingend
+# erforderlich, bitcoind startet sonst gar nicht) - offizielle BSV-Werte ---
 excessiveblocksize=4294967296
 maxstackmemoryusageconsensus=0
+minminingtxfee=0.00000001
 
 # --- Netzwerk ---
 listen=1
