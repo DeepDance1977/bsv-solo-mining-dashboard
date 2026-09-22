@@ -1,80 +1,102 @@
-# ============================================================
-# BSV Solo Mining Dashboard - Docker Compose (All-in-One Variante)
-# Autor/Eigentuemer: DeepDance | Lizenz: MIT
-#
-# Enthaelt optional den eigenen arm64 Bitcoin-SV-Node (Ordner ./node).
-# Standardmaessig aktiv - falls du bereits eine eigene BSV-Node betreibst
-# (z.B. als separate 5tratumOS/Umbrel-App), kommentiere den "bsv-node"-
-# Service aus und setze in .env stattdessen BSV_RPC_HOST=host.docker.internal
-# bzw. die IP der bestehenden Node.
-# ============================================================
-
 version: "3.9"
 
+# Diese docker-compose.yml ist bewusst kompatibel mit ZWEI Plattformen:
+#
+# 1) Klassisches Umbrel (und Umbrel-treue Forks): nutzt den zentralen
+#    "app_proxy"-Reverse-Proxy-Container, der ueber APP_HOST/APP_PORT
+#    automatisch mit dem Frontend-Container verbunden wird.
+#
+# 2) 5tratumOS: hat KEINEN zentralen app_proxy-Mechanismus. Jede App
+#    veroeffentlicht ihren Port stattdessen direkt am Host (wie z.B. die
+#    mitgelieferten Apps axebch, hashwatcher etc.). Deshalb zusaetzlich
+#    ein explizites "ports:"-Mapping am Frontend-Service.
+#
+# Beide Eintraege koennen gefahrlos nebeneinander stehen: Umbrel nutzt den
+# app_proxy und ignoriert das zusaetzliche Portmapping (nur intern relevant),
+# 5tratumOS ignoriert den unbekannten app_proxy-Service und nutzt einfach
+# das direkte Portmapping.
+
 services:
-  bsv-node:
-    build: ./node
-    container_name: bsv-dashboard-node
-    restart: unless-stopped
-    environment:
-      RPC_USER: ${BSV_RPC_USER:-rpcuser}
-      RPC_PASSWORD: ${BSV_RPC_PASSWORD:-rpcpassword}
-      RPC_ALLOW_IP: 172.16.0.0/12
-      NETWORK: mainnet
-    volumes:
-      - bsv_dashboard_nodedata:/data
-    ports:
-      - "8333:8333"   # P2P
-      - "8332:8332"   # RPC (nur bei Bedarf nach aussen oeffnen)
+  # WICHTIG: "frontend" muss als ERSTER echter Service in dieser Datei
+  # stehen. 5tratumOS ordnet den in umbrel-app.yml deklarierten Port
+  # (hier: 3000) automatisch dem ERSTEN Service in der Datei zu, unabhaengig
+  # vom Namen - als "<port>:80". Deshalb steht frontend hier vorne, obwohl
+  # es inhaltlich von backend/postgres abhaengt (das ist fuer Docker Compose
+  # kein Problem, "depends_on" regelt die Startreihenfolge unabhaengig von
+  # der Position in der Datei).
+  frontend:
+    image: ghcr.io/deepdance1977/bsv-solo-mining-dashboard-frontend:latest
+    pull_policy: always
+    restart: on-failure
+    stop_grace_period: 1m
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "bitcoin-cli", "-datadir=/data", "getblockchaininfo"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 10s
+
+  app_proxy:
+    environment:
+      APP_HOST: deepdance-dashboard_frontend_1
+      APP_PORT: 80
 
   postgres:
     image: postgres:16-alpine
-    container_name: bsv-dashboard-postgres
-    restart: unless-stopped
+    restart: on-failure
+    stop_grace_period: 1m
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-bsvdash}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bsvdash}
-      POSTGRES_DB: ${POSTGRES_DB:-bsvdash}
+      POSTGRES_USER: bsvdash
+      POSTGRES_PASSWORD: $APP_PASSWORD
+      POSTGRES_DB: bsvdash
     volumes:
-      - bsv_dashboard_pgdata:/var/lib/postgresql/data
+      - ${APP_DATA_DIR}/data/postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bsvdash}"]
+      test: ["CMD-SHELL", "pg_isready -U bsvdash"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
-    build: ./backend
-    container_name: bsv-dashboard-backend
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://bsvdash:bsvdash@postgres:5432/bsvdash}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    image: ghcr.io/deepdance1977/bsv-solo-mining-dashboard-backend:latest
+    pull_policy: always
+    restart: on-failure
+    stop_grace_period: 1m
     depends_on:
       postgres:
         condition: service_healthy
-      bsv-node:
-        condition: service_started
-    ports:
-      - "8000:8000"
-
-  frontend:
-    build: ./frontend
-    container_name: bsv-dashboard-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "3000:80"
-
-volumes:
-  bsv_dashboard_pgdata:
-  bsv_dashboard_nodedata:
+    environment:
+      DATABASE_URL: postgresql+psycopg2://bsvdash:$APP_PASSWORD@postgres:5432/bsvdash
+      SECRET_KEY: $APP_SEED
+      BOOTSTRAP_ADMIN_USERNAME: admin
+      # Bewusst FEST (nicht $APP_PASSWORD): das Backend erzwingt beim ersten
+      # Login ohnehin eine Passwortaenderung (siehe must_change_password).
+      # Das macht den Login unabhaengig davon, ob/wie eine Plattform eigene
+      # Zufallspasswoerter einspeist bzw. bei Neuinstallationen synchron
+      # haelt - das war die Ursache mehrerer Login-Probleme waehrend des
+      # Testens.
+      BOOTSTRAP_ADMIN_PASSWORD: changeme123
+      # BSV-Node-Verbindung: 5tratumOS teilt Zugangsdaten nicht automatisch
+      # zwischen getrennten Apps (kein $APP_BITCOIN_NODE_IP wie bei echtem
+      # Umbrel). Da beide Apps auf demselben Host laufen und die Node ihren
+      # RPC-Port direkt am Host veroeffentlicht (siehe deepdance-bitcoin-sv),
+      # erreichen wir sie ueber die Docker-Bridge-Adresse des Hosts.
+      # RPC-Zugangsdaten muessen exakt zu deepdance-bitcoin-sv passen.
+      BSV_RPC_HOST: host.docker.internal
+      BSV_RPC_PORT: 8332
+      BSV_RPC_USER: deepdance
+      BSV_RPC_PASSWORD: deepdance-bsv-rpc-2026
+      STRATUM_API_URL: http://host.docker.internal:9000/stats
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${APP_DATA_DIR}/data/backend:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
