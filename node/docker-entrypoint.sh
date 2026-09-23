@@ -11,6 +11,7 @@ RPC_USER="${RPC_USER:-rpcuser}"
 RPC_PASSWORD="${RPC_PASSWORD:-please-change-me}"
 RPC_ALLOW_IP="${RPC_ALLOW_IP:-172.16.0.0/12}"
 NETWORK="${NETWORK:-mainnet}"
+PRUNE_SIZE_MB="${PRUNE_SIZE_MB:-5000}"
 
 CONF_FILE="/data/bitcoin.conf"
 
@@ -23,6 +24,7 @@ if [ ! -f "$CONF_FILE" ]; then
     -e "s|__RPC_USER__|${RPC_USER}|g" \
     -e "s|__RPC_PASSWORD__|${RPC_PASSWORD}|g" \
     -e "s|__RPC_ALLOW_IP__|${RPC_ALLOW_IP}|g" \
+    -e "s|__PRUNE_SIZE_MB__|${PRUNE_SIZE_MB}|g" \
     /opt/bitcoin-sv/bitcoin.conf.template > "$CONF_FILE"
 
   if [ "$NETWORK" = "testnet" ]; then
