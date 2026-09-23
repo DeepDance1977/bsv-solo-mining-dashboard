@@ -6,7 +6,16 @@
 
 server=1
 daemon=0
-txindex=1
+
+# --- Speicherplatz sparen: Pruned Mode ---
+# WICHTIG: "txindex=1" ist mit Pruning NICHT kompatibel (schliesst sich
+# gegenseitig aus) - deshalb bewusst deaktiviert. "prune" gibt die
+# Ziel-Datenmenge in MiB an (Standard: 5000 = ca. 5 GB); ueber die
+# Umgebungsvariable PRUNE_SIZE_MB einstellbar. Mit Pruning werden alte,
+# bereits validierte Bloecke automatisch von der Festplatte geloescht -
+# fuer Solo-Mining/Wallet-Nutzung unproblematisch, da UTXO-Set und
+# Wallet-Daten unabhaengig davon vollstaendig erhalten bleiben.
+prune=__PRUNE_SIZE_MB__
 
 # --- Pflicht-Konsens-/Policy-Parameter (seit Genesis-Upgrade zwingend
 # erforderlich, bitcoind startet sonst gar nicht) - offizielle BSV-Werte ---
